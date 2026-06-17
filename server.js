@@ -1,9 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
-import { createReadStream, createWriteStream } from "node:fs";
-import http from "node:http";
+import { createReadStream } from "node:fs";
 import path from "node:path";
-import { pipeline } from "node:stream/promises";
+import http from "node:http";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +32,14 @@ const MIME_TYPES = {
 };
 
 await ensureStorage();
+
+process.on("uncaughtException", (error) => {
+  if (error?.code === "ERR_STREAM_PREMATURE_CLOSE") {
+    console.warn("Client closed a stream before it finished.");
+    return;
+  }
+  throw error;
+});
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -292,7 +299,7 @@ async function serveFile(res, filePath, allowRange = false, req = null) {
           "Content-Range": `bytes ${start}-${end}/${stat.size}`,
           "Accept-Ranges": "bytes"
         });
-        return pipeline(createReadStream(filePath, { start, end }), res);
+        return pipeFile(filePath, res, { start, end });
       }
     }
 
@@ -301,10 +308,22 @@ async function serveFile(res, filePath, allowRange = false, req = null) {
       "Content-Length": stat.size,
       "Accept-Ranges": allowRange ? "bytes" : "none"
     });
-    await pipeline(createReadStream(filePath), res);
+    pipeFile(filePath, res);
   } catch {
     notFound(res);
   }
+}
+
+function pipeFile(filePath, res, options = {}) {
+  const stream = createReadStream(filePath, options);
+  stream.on("error", () => {
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    }
+    res.end("File stream error");
+  });
+  res.on("close", () => stream.destroy());
+  stream.pipe(res);
 }
 
 function json(res, status, data) {
