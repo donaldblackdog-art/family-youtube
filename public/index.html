@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>가족용 유튜브</title>
+    <link rel="stylesheet" href="/public/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">가족용 유튜브</a>
+      <label class="upload-button" for="upload-toggle">영상 올리기</label>
+    </header>
+
+    <main>
+      <input id="upload-toggle" class="hidden-toggle" type="checkbox">
+      <section class="upload-panel">
+        <form action="/api/upload" method="post" enctype="multipart/form-data">
+          <div class="form-grid">
+            <label>
+              <span>제목</span>
+              <input name="title" type="text" placeholder="예: 제주 가족여행" required>
+            </label>
+            <label>
+              <span>영상 파일</span>
+              <input name="video" type="file" accept="video/*" required>
+            </label>
+          </div>
+          <label>
+            <span>메모</span>
+            <textarea name="description" rows="3" placeholder="날짜, 장소, 함께 나온 사람들을 적어두면 나중에 찾기 좋습니다."></textarea>
+          </label>
+          <button type="submit">업로드</button>
+        </form>
+      </section>
+
+      <section class="video-section">
+        <div class="section-head">
+          <h1>가족 영상</h1>
+          <p id="count">불러오는 중</p>
+        </div>
+        <div id="video-grid" class="video-grid"></div>
+      </section>
+    </main>
+
+    <script src="/public/app.js"></script>
+  </body>
+</html>

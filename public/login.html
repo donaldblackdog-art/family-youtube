@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>가족용 유튜브 로그인</title>
+    <link rel="stylesheet" href="/public/styles.css">
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <form class="login-form" action="/api/login" method="post">
+        <h1>가족용 유튜브</h1>
+        <p>가족 비밀번호를 입력해 주세요.</p>
+        <input name="password" type="password" autocomplete="current-password" autofocus>
+        <button type="submit">들어가기</button>
+        <p class="error" id="error">비밀번호가 맞지 않습니다.</p>
+      </form>
+    </main>
+    <script>
+      if (!new URL(location.href).searchParams.has("error")) {
+        document.getElementById("error").style.display = "none";
+      }
+    </script>
+  </body>
+</html>

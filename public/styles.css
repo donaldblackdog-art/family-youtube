@@ -1,0 +1,267 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f5ef;
+  --panel: #ffffff;
+  --ink: #1e2428;
+  --muted: #667076;
+  --line: #ddd8cc;
+  --accent: #1f7a6b;
+  --accent-dark: #155c51;
+  --shadow: 0 14px 36px rgba(38, 39, 35, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+.upload-button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+
+button:hover,
+.upload-button:hover {
+  background: var(--accent-dark);
+}
+
+.topbar {
+  align-items: center;
+  background: rgba(247, 245, 239, 0.92);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 16px clamp(18px, 4vw, 48px);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.text-link {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 28px clamp(18px, 4vw, 48px) 56px;
+}
+
+.hidden-toggle {
+  display: none;
+}
+
+.upload-panel {
+  display: none;
+  margin-bottom: 28px;
+}
+
+.hidden-toggle:checked + .upload-panel {
+  display: block;
+}
+
+.upload-panel form,
+.login-form,
+.empty {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+label span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+input,
+textarea {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  padding: 12px;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.section-head {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.section-head h1,
+.watch-info h1,
+.login-form h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: 0;
+}
+
+.section-head p,
+.video-card p,
+.watch-info p,
+.login-form p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.video-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+.video-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.video-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.video-card img {
+  aspect-ratio: 16 / 9;
+  background: #e7e1d5;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.video-card div {
+  padding: 0 14px 16px;
+}
+
+.video-card h2 {
+  font-size: 17px;
+  line-height: 1.35;
+  margin: 0 0 6px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 36px;
+}
+
+.empty h1,
+.empty h2 {
+  margin: 0 0 8px;
+}
+
+.watch {
+  display: grid;
+  gap: 22px;
+}
+
+.player {
+  aspect-ratio: 16 / 9;
+  background: #141615;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.watch-info {
+  display: grid;
+  gap: 12px;
+}
+
+.description {
+  color: var(--ink) !important;
+  line-height: 1.65;
+  max-width: 760px;
+}
+
+.share-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-top: 8px;
+  max-width: 760px;
+}
+
+.login-page {
+  display: grid;
+  place-items: center;
+}
+
+.login-shell {
+  width: min(100%, 430px);
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.error {
+  color: #b52e2e !important;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .form-grid,
+  .share-row {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    gap: 12px;
+  }
+
+  .upload-button {
+    padding: 10px 12px;
+  }
+}
