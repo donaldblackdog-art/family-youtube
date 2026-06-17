@@ -4,8 +4,21 @@ const videoFile = document.querySelector("#video-file");
 const thumbnailData = document.querySelector("#thumbnail-data");
 const thumbnailStatus = document.querySelector("#thumbnail-status");
 const uploadForm = document.querySelector("#upload-form");
+const roleLabel = document.querySelector("#role-label");
+const adminLink = document.querySelector("#admin-link");
+const uploadButton = document.querySelector("#upload-button");
+let isAdmin = false;
 
-loadVideos();
+init();
+
+async function init() {
+  const session = await fetch("/api/session").then((response) => response.json());
+  isAdmin = session.isAdmin;
+  roleLabel.textContent = isAdmin ? "관리자 모드" : "보기 전용";
+  adminLink.style.display = isAdmin ? "none" : "inline";
+  uploadButton.style.display = isAdmin ? "inline-block" : "none";
+  loadVideos();
+}
 
 videoFile?.addEventListener("change", async () => {
   const file = videoFile.files?.[0];
@@ -59,7 +72,7 @@ function loadVideos() {
                 <h2>${escapeHtml(video.title)}</h2>
                 <p>${date}</p>
               </a>
-              <button class="delete-button" data-id="${video.id}" type="button">삭제</button>
+              ${isAdmin ? `<button class="delete-button" data-id="${video.id}" type="button">삭제</button>` : ""}
             </div>
           </article>
         `;
@@ -73,6 +86,7 @@ function loadVideos() {
 }
 
 async function deleteVideo(id) {
+  if (!isAdmin) return;
   if (!confirm("이 영상을 삭제할까요? 영상 파일도 함께 삭제됩니다.")) return;
 
   const response = await fetch(`/api/videos/${encodeURIComponent(id)}`, { method: "DELETE" });

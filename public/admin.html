@@ -3,18 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>가족용 유튜브 로그인</title>
+    <title>관리자 로그인</title>
     <link rel="stylesheet" href="/public/styles.css">
   </head>
   <body class="login-page">
     <main class="login-shell">
-      <form class="login-form" action="/api/login" method="post">
-        <h1>가족용 유튜브</h1>
-        <p>가족 비밀번호를 입력해 주세요.</p>
+      <form class="login-form" action="/api/admin-login" method="post">
+        <h1>관리자 로그인</h1>
+        <p>업로드와 삭제를 하려면 관리자 비밀번호를 입력해 주세요.</p>
         <input name="password" type="password" autocomplete="current-password" autofocus>
-        <button type="submit">들어가기</button>
-        <p class="error" id="error">비밀번호가 맞지 않습니다.</p>
-        <a class="text-link" href="/admin">관리자 로그인</a>
+        <button type="submit">관리자로 들어가기</button>
+        <p class="error" id="error">관리자 비밀번호가 맞지 않습니다.</p>
+        <a class="text-link" href="/login">가족 보기 로그인</a>
       </form>
     </main>
     <script>

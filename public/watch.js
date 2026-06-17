@@ -1,9 +1,12 @@
 const root = document.querySelector("#watch");
 const id = new URL(location.href).searchParams.get("id");
 
-fetch("/api/videos")
-  .then((response) => response.json())
-  .then((videos) => {
+Promise.all([
+  fetch("/api/session").then((response) => response.json()),
+  fetch("/api/videos").then((response) => response.json())
+])
+  .then(([session, videos]) => {
+    const isAdmin = session.isAdmin;
     const video = videos.find((item) => item.id === id);
     if (!video) {
       root.innerHTML = `<div class="empty"><h1>영상을 찾을 수 없습니다.</h1><p>목록으로 돌아가 다시 선택해 주세요.</p></div>`;
@@ -20,7 +23,7 @@ fetch("/api/videos")
         <div class="share-row">
           <input id="share-link" value="${location.href}" readonly>
           <button id="copy-link" type="button">링크 복사</button>
-          <button id="delete-video" class="delete-button" type="button">삭제</button>
+          ${isAdmin ? `<button id="delete-video" class="delete-button" type="button">삭제</button>` : ""}
         </div>
       </div>
     `;
@@ -30,7 +33,7 @@ fetch("/api/videos")
       document.querySelector("#copy-link").textContent = "복사됨";
     });
 
-    document.querySelector("#delete-video").addEventListener("click", async () => {
+    document.querySelector("#delete-video")?.addEventListener("click", async () => {
       if (!confirm("이 영상을 삭제할까요? 영상 파일도 함께 삭제됩니다.")) return;
 
       const response = await fetch(`/api/videos/${encodeURIComponent(video.id)}`, { method: "DELETE" });

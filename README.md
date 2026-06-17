@@ -20,12 +20,20 @@ npm start
 http://localhost:3000
 ```
 
-기본 비밀번호는 `0000`입니다.
+기본 가족 보기 비밀번호는 `0000`입니다.
+
+관리자 로그인 주소는 아래와 같습니다.
+
+```text
+http://localhost:3000/admin
+```
+
+기본 관리자 비밀번호는 `9999`입니다. 관리자로 들어온 사람만 영상 업로드와 삭제를 할 수 있습니다.
 
 비밀번호를 바꾸려면 실행할 때 환경변수를 넣습니다.
 
 ```bash
-FAMILY_PASSWORD="원하는비밀번호" npm start
+FAMILY_PASSWORD="가족비밀번호" ADMIN_PASSWORD="관리자비밀번호" npm start
 ```
 
 ## 영상 저장 위치

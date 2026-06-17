@@ -9,7 +9,11 @@
   <body>
     <header class="topbar">
       <a class="brand" href="/">가족용 유튜브</a>
-      <label class="upload-button" for="upload-toggle">영상 올리기</label>
+      <nav class="top-actions">
+        <span id="role-label" class="role-label">확인 중</span>
+        <a id="admin-link" class="text-link" href="/admin">관리자</a>
+        <label id="upload-button" class="upload-button admin-only" for="upload-toggle">영상 올리기</label>
+      </nav>
     </header>
 
     <main>

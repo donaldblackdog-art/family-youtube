@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
 const FAMILY_PASSWORD = process.env.FAMILY_PASSWORD || "0000";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "9999";
 const SESSION_COOKIE = "familytube_session";
 const MEDIA_DIR = path.join(__dirname, "media");
 const VIDEO_DIR = path.join(MEDIA_DIR, "videos");
@@ -57,6 +58,14 @@ const server = http.createServer(async (req, res) => {
       return handleLogin(req, res);
     }
 
+    if (req.method === "GET" && url.pathname === "/admin") {
+      return serveFile(res, path.join(PUBLIC_DIR, "admin.html"));
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/admin-login") {
+      return handleAdminLogin(req, res);
+    }
+
     if (url.pathname.startsWith("/public/")) {
       return serveStatic(res, PUBLIC_DIR, url.pathname.replace("/public/", ""));
     }
@@ -80,11 +89,17 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, await listVideos());
     }
 
+    if (req.method === "GET" && url.pathname === "/api/session") {
+      return json(res, 200, { role: getSessionRole(req), isAdmin: isAdmin(req) });
+    }
+
     if (req.method === "POST" && url.pathname === "/api/upload") {
+      if (!isAdmin(req)) return json(res, 403, { error: "admin_required" });
       return handleUpload(req, res);
     }
 
     if (req.method === "DELETE" && url.pathname.startsWith("/api/videos/")) {
+      if (!isAdmin(req)) return json(res, 403, { error: "admin_required" });
       return handleDeleteVideo(req, res, decodeURIComponent(url.pathname.replace("/api/videos/", "")));
     }
 
@@ -97,7 +112,8 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`FamilyTube is running at http://localhost:${PORT}`);
-  console.log(`Default password: ${FAMILY_PASSWORD}`);
+  console.log(`Viewer password: ${FAMILY_PASSWORD}`);
+  console.log(`Admin password: ${ADMIN_PASSWORD}`);
 });
 
 async function ensureStorage() {
@@ -127,10 +143,24 @@ async function handleLogin(req, res) {
     return redirect(res, "/login?error=1");
   }
 
-  const token = crypto.createHash("sha256").update(FAMILY_PASSWORD).digest("hex");
+  setSession(res, "viewer", "/");
+}
+
+async function handleAdminLogin(req, res) {
+  const body = await readBody(req, 20_000);
+  const params = new URLSearchParams(body);
+  if (params.get("password") !== ADMIN_PASSWORD) {
+    return redirect(res, "/admin?error=1");
+  }
+
+  setSession(res, "admin", "/");
+}
+
+function setSession(res, role, location) {
+  const token = role === "admin" ? sessionToken("admin", ADMIN_PASSWORD) : sessionToken("viewer", FAMILY_PASSWORD);
   res.writeHead(303, {
     "Set-Cookie": `${SESSION_COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`,
-    Location: "/"
+    Location: location
   });
   res.end();
 }
@@ -192,8 +222,22 @@ async function handleDeleteVideo(req, res, id) {
 }
 
 function isAllowed(req) {
-  const token = crypto.createHash("sha256").update(FAMILY_PASSWORD).digest("hex");
-  return parseCookies(req.headers.cookie || "")[SESSION_COOKIE] === token;
+  return getSessionRole(req) !== "guest";
+}
+
+function isAdmin(req) {
+  return getSessionRole(req) === "admin";
+}
+
+function getSessionRole(req) {
+  const token = parseCookies(req.headers.cookie || "")[SESSION_COOKIE];
+  if (token === sessionToken("admin", ADMIN_PASSWORD)) return "admin";
+  if (token === sessionToken("viewer", FAMILY_PASSWORD)) return "viewer";
+  return "guest";
+}
+
+function sessionToken(role, password) {
+  return crypto.createHash("sha256").update(`${role}:${password}`).digest("hex");
 }
 
 function parseCookies(cookieHeader) {
