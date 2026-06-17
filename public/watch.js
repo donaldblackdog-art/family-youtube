@@ -20,6 +20,7 @@ fetch("/api/videos")
         <div class="share-row">
           <input id="share-link" value="${location.href}" readonly>
           <button id="copy-link" type="button">링크 복사</button>
+          <button id="delete-video" class="delete-button" type="button">삭제</button>
         </div>
       </div>
     `;
@@ -27,6 +28,18 @@ fetch("/api/videos")
     document.querySelector("#copy-link").addEventListener("click", async () => {
       await navigator.clipboard.writeText(document.querySelector("#share-link").value);
       document.querySelector("#copy-link").textContent = "복사됨";
+    });
+
+    document.querySelector("#delete-video").addEventListener("click", async () => {
+      if (!confirm("이 영상을 삭제할까요? 영상 파일도 함께 삭제됩니다.")) return;
+
+      const response = await fetch(`/api/videos/${encodeURIComponent(video.id)}`, { method: "DELETE" });
+      if (!response.ok) {
+        alert("삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+
+      location.href = "/";
     });
   });
 

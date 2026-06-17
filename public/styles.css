@@ -39,6 +39,11 @@ button,
   padding: 12px 16px;
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 button:hover,
 .upload-button:hover {
   background: var(--accent-dark);
@@ -182,6 +187,8 @@ textarea {
 }
 
 .video-card div {
+  display: grid;
+  gap: 10px;
   padding: 0 14px 16px;
 }
 
@@ -189,6 +196,22 @@ textarea {
   font-size: 17px;
   line-height: 1.35;
   margin: 0 0 6px;
+}
+
+.delete-button {
+  background: #b44747;
+  justify-self: start;
+  padding: 9px 12px;
+}
+
+.delete-button:hover {
+  background: #913636;
+}
+
+.thumbnail-status {
+  color: var(--muted);
+  font-size: 14px;
+  margin: -2px 0 16px;
 }
 
 .empty {
@@ -227,7 +250,7 @@ textarea {
 .share-row {
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   margin-top: 8px;
   max-width: 760px;
 }

@@ -84,6 +84,10 @@ const server = http.createServer(async (req, res) => {
       return handleUpload(req, res);
     }
 
+    if (req.method === "DELETE" && url.pathname.startsWith("/api/videos/")) {
+      return handleDeleteVideo(req, res, decodeURIComponent(url.pathname.replace("/api/videos/", "")));
+    }
+
     notFound(res);
   } catch (error) {
     console.error(error);
@@ -140,6 +144,7 @@ async function handleUpload(req, res) {
   const parsed = parseMultipart(Buffer.from(body, "binary"), match[1] || match[2]);
   const title = (parsed.fields.title || "").trim() || "제목 없는 영상";
   const description = (parsed.fields.description || "").trim();
+  const thumbnailData = (parsed.fields.thumbnailData || "").trim();
   const file = parsed.files.video;
 
   if (!file || !file.filename) return json(res, 400, { error: "video_required" });
@@ -153,7 +158,8 @@ async function handleUpload(req, res) {
   const thumbPath = path.join(THUMB_DIR, thumbName);
 
   await fs.writeFile(videoPath, file.data);
-  const thumbnailCreated = await createThumbnail(videoPath, thumbPath);
+  const uploadedThumbnail = await saveUploadedThumbnail(thumbnailData, thumbPath);
+  const thumbnailCreated = uploadedThumbnail || await createThumbnail(videoPath, thumbPath);
 
   const videos = await listVideos();
   videos.push({
@@ -169,6 +175,20 @@ async function handleUpload(req, res) {
   await saveVideos(videos);
 
   redirect(res, `/watch?id=${id}`);
+}
+
+async function handleDeleteVideo(req, res, id) {
+  const videos = await listVideos();
+  const target = videos.find((video) => video.id === id);
+  if (!target) return json(res, 404, { error: "video_not_found" });
+
+  await Promise.all([
+    deleteMediaFile(target.videoUrl),
+    deleteMediaFile(target.thumbUrl)
+  ]);
+  await saveVideos(videos.filter((video) => video.id !== id));
+
+  json(res, 200, { ok: true });
 }
 
 function isAllowed(req) {
@@ -272,6 +292,31 @@ async function createThumbnail(videoPath, thumbPath) {
     ffmpeg.on("error", () => resolve(false));
     ffmpeg.on("close", (code) => resolve(code === 0));
   });
+}
+
+async function saveUploadedThumbnail(dataUrl, thumbPath) {
+  const match = dataUrl.match(/^data:image\/jpeg;base64,([a-z0-9+/=]+)$/i);
+  if (!match) return false;
+
+  try {
+    await fs.writeFile(thumbPath, Buffer.from(match[1], "base64"));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function deleteMediaFile(urlPath) {
+  if (!urlPath?.startsWith("/media/")) return;
+  const relativePath = urlPath.replace("/media/", "");
+  const resolved = path.normalize(path.join(MEDIA_DIR, relativePath));
+  if (!resolved.startsWith(MEDIA_DIR)) return;
+
+  try {
+    await fs.unlink(resolved);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
 
 async function serveStatic(res, root, relativePath, allowRange = false, req = null) {

@@ -15,7 +15,7 @@
     <main>
       <input id="upload-toggle" class="hidden-toggle" type="checkbox">
       <section class="upload-panel">
-        <form action="/api/upload" method="post" enctype="multipart/form-data">
+        <form id="upload-form" action="/api/upload" method="post" enctype="multipart/form-data">
           <div class="form-grid">
             <label>
               <span>제목</span>
@@ -23,9 +23,11 @@
             </label>
             <label>
               <span>영상 파일</span>
-              <input name="video" type="file" accept="video/*" required>
+              <input id="video-file" name="video" type="file" accept="video/*" required>
             </label>
           </div>
+          <input id="thumbnail-data" name="thumbnailData" type="hidden">
+          <p id="thumbnail-status" class="thumbnail-status">영상을 선택하면 썸네일을 자동으로 뽑습니다.</p>
           <label>
             <span>메모</span>
             <textarea name="description" rows="3" placeholder="날짜, 장소, 함께 나온 사람들을 적어두면 나중에 찾기 좋습니다."></textarea>
