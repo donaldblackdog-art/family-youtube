@@ -148,7 +148,7 @@ textarea {
 .section-head {
   align-items: end;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 18px;
   margin-bottom: 18px;
 }
