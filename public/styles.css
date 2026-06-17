@@ -281,6 +281,14 @@ textarea {
   gap: 14px;
 }
 
+.secondary-login {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+}
+
 .error {
   color: #b52e2e !important;
   font-weight: 700;
