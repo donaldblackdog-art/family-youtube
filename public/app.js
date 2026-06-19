@@ -92,7 +92,7 @@ function renderVideos() {
             <div>
               <a href="/watch?id=${video.id}">
                 <h2>${escapeHtml(video.title)}</h2>
-                <p>${recordedDate ? `촬영 ${recordedDate}` : `업로드 ${uploadedDate}`}</p>
+                <p class="video-meta">${recordedDate ? `촬영 ${recordedDate}` : `업로드 ${uploadedDate}`}</p>
               </a>
               ${isAdmin ? `<button class="delete-button" data-id="${video.id}" type="button">삭제</button>` : ""}
             </div>

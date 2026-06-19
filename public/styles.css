@@ -1,13 +1,16 @@
 :root {
   color-scheme: light;
-  --bg: #f7f5ef;
-  --panel: #ffffff;
-  --ink: #1e2428;
-  --muted: #667076;
-  --line: #ddd8cc;
-  --accent: #1f7a6b;
-  --accent-dark: #155c51;
-  --shadow: 0 14px 36px rgba(38, 39, 35, 0.1);
+  --bg: #fbf7ef;
+  --panel: #fffdf8;
+  --ink: #202426;
+  --muted: #6c7374;
+  --line: #e3d9c8;
+  --accent: #227864;
+  --accent-dark: #155846;
+  --warm: #ef8f6b;
+  --warm-soft: #fff0e8;
+  --shadow: 0 18px 44px rgba(55, 43, 30, 0.12);
+  --soft-shadow: 0 8px 22px rgba(55, 43, 30, 0.08);
 }
 
 * {
@@ -17,7 +20,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 241, 0.96), rgba(246, 240, 228, 0.96)),
+    var(--bg);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -36,8 +41,16 @@ button,
   color: white;
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: 800;
   padding: 12px 16px;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+button:hover,
+.upload-button:hover {
+  background: var(--accent-dark);
+  box-shadow: var(--soft-shadow);
+  transform: translateY(-1px);
 }
 
 button:disabled {
@@ -45,41 +58,38 @@ button:disabled {
   opacity: 0.72;
 }
 
-button:hover,
-.upload-button:hover {
-  background: var(--accent-dark);
-}
-
 .secondary-button {
-  background: #e9e5da;
+  background: #eee6d8;
   color: var(--ink);
 }
 
 .secondary-button:hover {
-  background: #dcd6c9;
+  background: #e2d8c6;
 }
 
 .topbar {
   align-items: center;
-  background: rgba(247, 245, 239, 0.92);
-  border-bottom: 1px solid var(--line);
+  background: rgba(255, 252, 246, 0.9);
+  border-bottom: 1px solid rgba(227, 217, 200, 0.82);
   display: flex;
   justify-content: space-between;
   padding: 16px clamp(18px, 4vw, 48px);
   position: sticky;
   top: 0;
   z-index: 2;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
 }
 
 .brand {
-  font-size: 20px;
-  font-weight: 800;
+  color: #17211d;
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 
 .text-link {
   color: var(--accent-dark);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .top-actions {
@@ -88,7 +98,9 @@ button:hover,
   gap: 14px;
 }
 
-.role-label {
+.role-label,
+.video-meta,
+.watch-meta {
   color: var(--muted);
   font-size: 14px;
   font-weight: 700;
@@ -97,7 +109,7 @@ button:hover,
 main {
   margin: 0 auto;
   max-width: 1180px;
-  padding: 28px clamp(18px, 4vw, 48px) 56px;
+  padding: 30px clamp(18px, 4vw, 48px) 58px;
 }
 
 .hidden-toggle {
@@ -115,11 +127,12 @@ main {
 
 .upload-panel form,
 .login-form,
-.empty {
-  background: var(--panel);
+.empty,
+.edit-form {
+  background: rgba(255, 253, 248, 0.94);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--soft-shadow);
   padding: 24px;
 }
 
@@ -135,21 +148,31 @@ label {
   margin-bottom: 16px;
 }
 
-label span {
+label span,
+.sort-control span {
   color: var(--muted);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 input,
 textarea,
 select {
+  background: #fffaf1;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
   font: inherit;
   padding: 12px;
   width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 120, 100, 0.14);
+  outline: none;
 }
 
 textarea {
@@ -176,10 +199,8 @@ textarea {
   margin: 0;
 }
 
-.sort-control span {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 700;
+.sort-control select {
+  min-width: 170px;
 }
 
 .section-head h1,
@@ -200,28 +221,30 @@ textarea {
 
 .video-grid {
   display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .video-card {
   background: var(--panel);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(227, 217, 200, 0.9);
   border-radius: 8px;
   display: grid;
   gap: 12px;
   overflow: hidden;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  box-shadow: var(--soft-shadow);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .video-card:hover {
+  border-color: rgba(34, 120, 100, 0.36);
   box-shadow: var(--shadow);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .video-card img {
   aspect-ratio: 16 / 9;
-  background: #e7e1d5;
+  background: #eadfce;
   display: block;
   object-fit: cover;
   width: 100%;
@@ -229,14 +252,24 @@ textarea {
 
 .video-card div {
   display: grid;
-  gap: 10px;
-  padding: 0 14px 16px;
+  gap: 11px;
+  padding: 0 15px 17px;
 }
 
 .video-card h2 {
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.35;
-  margin: 0 0 6px;
+  margin: 0 0 7px;
+}
+
+.video-meta {
+  background: var(--warm-soft);
+  border: 1px solid #f5d2bf;
+  border-radius: 999px;
+  color: #9c4f35 !important;
+  display: inline-block;
+  padding: 5px 9px;
+  width: fit-content;
 }
 
 .delete-button {
@@ -257,7 +290,7 @@ textarea {
 
 .empty {
   grid-column: 1 / -1;
-  padding: 36px;
+  padding: 38px;
 }
 
 .empty h1,
@@ -274,12 +307,22 @@ textarea {
   aspect-ratio: 16 / 9;
   background: #141615;
   border-radius: 8px;
+  box-shadow: var(--shadow);
   width: 100%;
 }
 
 .watch-info {
   display: grid;
-  gap: 12px;
+  gap: 13px;
+  max-width: 900px;
+}
+
+.watch-meta {
+  background: #f1eadf;
+  border-radius: 999px;
+  display: inline-block;
+  padding: 7px 11px;
+  width: fit-content;
 }
 
 .description {
@@ -293,16 +336,14 @@ textarea {
   gap: 10px;
   grid-template-columns: minmax(0, 1fr) repeat(3, auto);
   margin-top: 8px;
-  max-width: 760px;
+  max-width: 800px;
 }
 
 .edit-form {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 8px;
   display: grid;
   gap: 14px;
   margin-top: 10px;
+  max-width: 800px;
   padding: 18px;
 }
 
@@ -318,15 +359,22 @@ textarea {
 .login-page {
   display: grid;
   place-items: center;
+  padding: 24px;
 }
 
 .login-shell {
-  width: min(100%, 430px);
+  width: min(100%, 440px);
 }
 
 .login-form {
   display: grid;
   gap: 14px;
+}
+
+.login-form h1 {
+  color: #17211d;
+  font-size: 44px;
+  font-weight: 900;
 }
 
 .secondary-login {
@@ -339,7 +387,7 @@ textarea {
 
 .error {
   color: #b52e2e !important;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 @media (max-width: 720px) {

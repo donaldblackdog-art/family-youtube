@@ -19,7 +19,7 @@ Promise.all([
       <video class="player" controls playsinline poster="${video.thumbUrl}" src="${video.videoUrl}"></video>
       <div class="watch-info">
         <h1>${escapeHtml(video.title)}</h1>
-        <p>${recordedDate ? `촬영일 ${recordedDate}` : "촬영일 없음"} · 업로드일 ${uploadedDate}</p>
+        <p class="watch-meta">${recordedDate ? `촬영일 ${recordedDate}` : "촬영일 없음"} · 업로드일 ${uploadedDate}</p>
         ${video.description ? `<p class="description">${escapeHtml(video.description)}</p>` : ""}
         <div class="share-row">
           <input id="share-link" value="${location.href}" readonly>
