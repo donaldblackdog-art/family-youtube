@@ -28,7 +28,8 @@ a {
 }
 
 button,
-.upload-button {
+.upload-button,
+.secondary-button {
   border: 0;
   border-radius: 8px;
   background: var(--accent);
@@ -47,6 +48,15 @@ button:disabled {
 button:hover,
 .upload-button:hover {
   background: var(--accent-dark);
+}
+
+.secondary-button {
+  background: #e9e5da;
+  color: var(--ink);
+}
+
+.secondary-button:hover {
+  background: #dcd6c9;
 }
 
 .topbar {
@@ -281,9 +291,28 @@ textarea {
 .share-row {
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
   margin-top: 8px;
   max-width: 760px;
+}
+
+.edit-form {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 18px;
+}
+
+.edit-form[hidden] {
+  display: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .login-page {

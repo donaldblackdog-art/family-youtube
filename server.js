@@ -98,6 +98,11 @@ const server = http.createServer(async (req, res) => {
       return handleUpload(req, res);
     }
 
+    if (req.method === "PATCH" && url.pathname.startsWith("/api/videos/")) {
+      if (!isAdmin(req)) return json(res, 403, { error: "admin_required" });
+      return handleUpdateVideo(req, res, decodeURIComponent(url.pathname.replace("/api/videos/", "")));
+    }
+
     if (req.method === "DELETE" && url.pathname.startsWith("/api/videos/")) {
       if (!isAdmin(req)) return json(res, 403, { error: "admin_required" });
       return handleDeleteVideo(req, res, decodeURIComponent(url.pathname.replace("/api/videos/", "")));
@@ -221,6 +226,26 @@ async function handleDeleteVideo(req, res, id) {
   await saveVideos(videos.filter((video) => video.id !== id));
 
   json(res, 200, { ok: true });
+}
+
+async function handleUpdateVideo(req, res, id) {
+  const videos = await listVideos();
+  const index = videos.findIndex((video) => video.id === id);
+  if (index === -1) return json(res, 404, { error: "video_not_found" });
+
+  const body = JSON.parse(await readBody(req, 100_000));
+  const title = String(body.title || "").trim();
+  if (!title) return json(res, 400, { error: "title_required" });
+
+  videos[index] = {
+    ...videos[index],
+    title,
+    description: String(body.description || "").trim(),
+    recordedDate: normalizeDate(body.recordedDate || "")
+  };
+
+  await saveVideos(videos);
+  json(res, 200, videos[index]);
 }
 
 function isAllowed(req) {
