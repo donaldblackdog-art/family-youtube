@@ -7,7 +7,9 @@ const uploadForm = document.querySelector("#upload-form");
 const roleLabel = document.querySelector("#role-label");
 const adminLink = document.querySelector("#admin-link");
 const uploadButton = document.querySelector("#upload-button");
+const sortSelect = document.querySelector("#sort-select");
 let isAdmin = false;
+let allVideos = [];
 
 init();
 
@@ -44,10 +46,19 @@ uploadForm?.addEventListener("submit", () => {
   button.disabled = true;
 });
 
+sortSelect?.addEventListener("change", renderVideos);
+
 function loadVideos() {
   fetch("/api/videos")
   .then((response) => response.json())
   .then((videos) => {
+    allVideos = videos;
+    renderVideos();
+  });
+}
+
+function renderVideos() {
+    const videos = sortVideos(allVideos, sortSelect?.value || "uploaded");
     count.textContent = `${videos.length}개 영상`;
     if (videos.length === 0) {
       grid.innerHTML = `
@@ -61,7 +72,8 @@ function loadVideos() {
 
     grid.innerHTML = videos
       .map((video) => {
-        const date = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(video.createdAt));
+        const uploadedDate = formatDate(video.createdAt);
+        const recordedDate = video.recordedDate ? formatDate(`${video.recordedDate}T00:00:00`) : "";
         return `
           <article class="video-card">
             <a href="/watch?id=${video.id}">
@@ -70,7 +82,7 @@ function loadVideos() {
             <div>
               <a href="/watch?id=${video.id}">
                 <h2>${escapeHtml(video.title)}</h2>
-                <p>${date}</p>
+                <p>${recordedDate ? `촬영 ${recordedDate}` : `업로드 ${uploadedDate}`}</p>
               </a>
               ${isAdmin ? `<button class="delete-button" data-id="${video.id}" type="button">삭제</button>` : ""}
             </div>
@@ -82,7 +94,27 @@ function loadVideos() {
     grid.querySelectorAll(".delete-button").forEach((button) => {
       button.addEventListener("click", () => deleteVideo(button.dataset.id));
     });
+}
+
+function sortVideos(videos, sortMode) {
+  return [...videos].sort((a, b) => {
+    if (sortMode === "recorded") {
+      const recordedDiff = dateValue(b.recordedDate) - dateValue(a.recordedDate);
+      if (recordedDiff !== 0) return recordedDiff;
+    }
+
+    return dateValue(b.createdAt) - dateValue(a.createdAt);
   });
+}
+
+function dateValue(value) {
+  if (!value) return 0;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(value));
 }
 
 async function deleteVideo(id) {

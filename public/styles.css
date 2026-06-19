@@ -132,7 +132,8 @@ label span {
 }
 
 input,
-textarea {
+textarea,
+select {
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
@@ -151,6 +152,24 @@ textarea {
   justify-content: flex-start;
   gap: 18px;
   margin-bottom: 18px;
+}
+
+.compact-section-head {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sort-control {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.sort-control span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .section-head h1,
@@ -298,6 +317,11 @@ textarea {
   .form-grid,
   .share-row {
     grid-template-columns: 1fr;
+  }
+
+  .compact-section-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .topbar {

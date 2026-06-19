@@ -26,6 +26,10 @@
               <input name="title" type="text" placeholder="예: 제주 가족여행" required>
             </label>
             <label>
+              <span>촬영 날짜</span>
+              <input name="recordedDate" type="date">
+            </label>
+            <label>
               <span>영상 파일</span>
               <input id="video-file" name="video" type="file" accept="video/*" required>
             </label>
@@ -41,8 +45,15 @@
       </section>
 
       <section class="video-section">
-        <div class="section-head">
+        <div class="section-head compact-section-head">
           <p id="count">불러오는 중</p>
+          <label class="sort-control">
+            <span>정렬</span>
+            <select id="sort-select">
+              <option value="uploaded">업로드일 순서</option>
+              <option value="recorded">촬영 날짜 순서</option>
+            </select>
+          </label>
         </div>
         <div id="video-grid" class="video-grid"></div>
       </section>

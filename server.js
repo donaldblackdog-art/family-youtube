@@ -174,6 +174,7 @@ async function handleUpload(req, res) {
   const parsed = parseMultipart(Buffer.from(body, "binary"), match[1] || match[2]);
   const title = (parsed.fields.title || "").trim() || "제목 없는 영상";
   const description = (parsed.fields.description || "").trim();
+  const recordedDate = normalizeDate(parsed.fields.recordedDate || "");
   const thumbnailData = (parsed.fields.thumbnailData || "").trim();
   const file = parsed.files.video;
 
@@ -196,6 +197,7 @@ async function handleUpload(req, res) {
     id,
     title,
     description,
+    recordedDate,
     originalName: file.filename,
     videoUrl: `/media/videos/${videoName}`,
     thumbUrl: thumbnailCreated ? `/media/thumbnails/${thumbName}` : "/public/placeholder.svg",
@@ -316,6 +318,12 @@ function safeVideoExtension(filename, contentType) {
   if (contentType.includes("webm")) return ".webm";
   if (contentType.includes("quicktime")) return ".mov";
   return ".mp4";
+}
+
+function normalizeDate(value) {
+  const date = String(value).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "";
+  return Number.isNaN(new Date(`${date}T00:00:00`).getTime()) ? "" : date;
 }
 
 async function createThumbnail(videoPath, thumbPath) {

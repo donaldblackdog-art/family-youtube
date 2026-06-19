@@ -13,12 +13,13 @@ Promise.all([
       return;
     }
 
-    const date = new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" }).format(new Date(video.createdAt));
+    const uploadedDate = formatDate(video.createdAt);
+    const recordedDate = video.recordedDate ? formatDate(`${video.recordedDate}T00:00:00`) : "";
     root.innerHTML = `
       <video class="player" controls playsinline poster="${video.thumbUrl}" src="${video.videoUrl}"></video>
       <div class="watch-info">
         <h1>${escapeHtml(video.title)}</h1>
-        <p>${date}</p>
+        <p>${recordedDate ? `촬영일 ${recordedDate}` : "촬영일 없음"} · 업로드일 ${uploadedDate}</p>
         ${video.description ? `<p class="description">${escapeHtml(video.description)}</p>` : ""}
         <div class="share-row">
           <input id="share-link" value="${location.href}" readonly>
@@ -54,4 +55,8 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#039;"
   })[char]);
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat("ko-KR", { dateStyle: "full" }).format(new Date(value));
 }
