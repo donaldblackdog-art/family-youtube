@@ -12,6 +12,16 @@ let isAdmin = false;
 let allVideos = [];
 
 init();
+setDefaultRecordedDate();
+
+function setDefaultRecordedDate() {
+  const input = uploadForm?.querySelector("input[name='recordedDate']");
+  if (!input || input.value) return;
+
+  const today = new Date();
+  const offsetToday = new Date(today.getTime() - today.getTimezoneOffset() * 60_000);
+  input.value = offsetToday.toISOString().slice(0, 10);
+}
 
 async function init() {
   const session = await fetch("/api/session").then((response) => response.json());
