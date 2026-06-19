@@ -360,21 +360,64 @@ textarea {
   display: grid;
   place-items: center;
   padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(239, 143, 107, 0.2), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(34, 120, 100, 0.18), transparent 34%),
+    linear-gradient(180deg, #fffaf1, #f5ecde);
 }
 
 .login-shell {
-  width: min(100%, 440px);
+  width: min(100%, 470px);
 }
 
 .login-form {
   display: grid;
-  gap: 14px;
+  gap: 16px;
+  padding: 30px;
 }
 
 .login-form h1 {
   color: #17211d;
-  font-size: 44px;
+  font-size: 42px;
   font-weight: 900;
+  line-height: 1.05;
+}
+
+.login-brand {
+  align-items: center;
+  display: flex;
+  gap: 15px;
+}
+
+.login-mark {
+  align-items: center;
+  background: var(--warm-soft);
+  border: 1px solid #f4c8b3;
+  border-radius: 8px;
+  color: #a55338;
+  display: grid;
+  flex: 0 0 58px;
+  font-size: 27px;
+  font-weight: 900;
+  height: 58px;
+  place-items: center;
+}
+
+.admin-mark {
+  background: #e9f4ef;
+  border-color: #bddbd0;
+  color: var(--accent-dark);
+}
+
+.login-help {
+  background: #f6efe3;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px 14px;
+}
+
+.back-link {
+  justify-self: start;
 }
 
 .secondary-login {
@@ -416,5 +459,18 @@ textarea {
 
   .upload-button {
     padding: 10px 12px;
+  }
+
+  .login-form {
+    padding: 24px;
+  }
+
+  .login-form h1 {
+    font-size: 34px;
+  }
+
+  .login-mark {
+    flex-basis: 50px;
+    height: 50px;
   }
 }

@@ -9,8 +9,14 @@
   <body class="login-page">
     <main class="login-shell">
       <form class="login-form" action="/api/login" method="post">
-        <h1>초초TV</h1>
-        <p>가족 보기 비밀번호를 입력해 주세요.</p>
+        <div class="login-brand">
+          <span class="login-mark">초</span>
+          <div>
+            <h1>초초TV</h1>
+            <p>우리 가족 영상 보관함</p>
+          </div>
+        </div>
+        <p class="login-help">가족 보기 비밀번호를 입력해 주세요.</p>
         <input name="password" type="password" autocomplete="current-password" autofocus>
         <button type="submit">가족 보기로 들어가기</button>
         <p class="error" id="error">비밀번호가 맞지 않습니다.</p>
