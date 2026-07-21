@@ -49,7 +49,8 @@ async function unlock(password) {
     sessionStorage.setItem(SESSION_KEY, password);
     loginError.hidden = true;
     showApp();
-  } catch {
+  } catch (error) {
+    console.error(error);
     sessionStorage.removeItem(SESSION_KEY);
     loginError.hidden = false;
     passwordInput.select();
