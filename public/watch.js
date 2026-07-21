@@ -15,11 +15,15 @@ Promise.all([
 
     const uploadedDate = formatDate(video.createdAt);
     const recordedDate = video.recordedDate ? formatDate(`${video.recordedDate}T00:00:00`) : "";
+    const playerHtml = video.sourceType === "googleDrive"
+      ? `<iframe class="player drive-player" src="${escapeAttribute(video.videoUrl)}" allow="autoplay; fullscreen" allowfullscreen></iframe>`
+      : `<video class="player" controls playsinline poster="${escapeAttribute(video.thumbUrl)}" src="${escapeAttribute(video.videoUrl)}"></video>`;
+
     root.innerHTML = `
-      <video class="player" controls playsinline poster="${video.thumbUrl}" src="${video.videoUrl}"></video>
+      ${playerHtml}
       <div class="watch-info">
         <h1>${escapeHtml(video.title)}</h1>
-        <p class="watch-meta">${recordedDate ? `촬영일 ${recordedDate}` : "촬영일 없음"} · 업로드일 ${uploadedDate}</p>
+        <p class="watch-meta">${recordedDate ? `촬영일 ${recordedDate}` : "촬영일 없음"} · 등록일 ${uploadedDate}</p>
         ${video.description ? `<p class="description">${escapeHtml(video.description)}</p>` : ""}
         <div class="share-row">
           <input id="share-link" value="${location.href}" readonly>
@@ -43,6 +47,12 @@ Promise.all([
               <span>메모</span>
               <textarea id="edit-description" name="description" rows="3">${escapeHtml(video.description || "")}</textarea>
             </label>
+            ${video.sourceType === "googleDrive" ? `
+              <label>
+                <span>구글드라이브 공유 링크</span>
+                <input id="edit-drive-url" name="driveUrl" type="url" value="${escapeAttribute(video.driveUrl || "")}" required>
+              </label>
+            ` : ""}
             <div class="form-actions">
               <button type="submit">저장</button>
               <button id="cancel-edit" class="secondary-button" type="button">취소</button>
@@ -78,7 +88,8 @@ Promise.all([
         body: JSON.stringify({
           title: document.querySelector("#edit-title").value,
           recordedDate: document.querySelector("#edit-recorded-date").value,
-          description: document.querySelector("#edit-description").value
+          description: document.querySelector("#edit-description").value,
+          driveUrl: document.querySelector("#edit-drive-url")?.value || ""
         })
       });
 
@@ -93,7 +104,7 @@ Promise.all([
     });
 
     document.querySelector("#delete-video")?.addEventListener("click", async () => {
-      if (!confirm("이 영상을 삭제할까요? 영상 파일도 함께 삭제됩니다.")) return;
+      if (!confirm("초초TV 목록에서 이 영상을 삭제할까요? 구글드라이브 원본은 삭제되지 않습니다.")) return;
 
       const response = await fetch(`/api/videos/${encodeURIComponent(video.id)}`, { method: "DELETE" });
       if (!response.ok) {

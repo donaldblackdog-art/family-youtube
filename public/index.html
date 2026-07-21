@@ -12,14 +12,16 @@
       <nav class="top-actions">
         <span id="role-label" class="role-label">확인 중</span>
         <a id="admin-link" class="text-link" href="/admin">관리자 로그인</a>
-        <label id="upload-button" class="upload-button admin-only" for="upload-toggle">영상 올리기</label>
+        <label id="upload-button" class="upload-button admin-only" for="upload-toggle">Drive 링크 등록</label>
       </nav>
     </header>
 
     <main>
       <input id="upload-toggle" class="hidden-toggle" type="checkbox">
       <section class="upload-panel">
-        <form id="upload-form" action="/api/upload" method="post" enctype="multipart/form-data">
+        <form id="drive-form" action="/api/drive-videos" method="post">
+          <h2>구글드라이브 영상 등록</h2>
+          <p class="form-note">구글드라이브에 영상을 올린 뒤, 공유 링크를 붙여넣으면 초초TV에서 볼 수 있습니다.</p>
           <div class="form-grid">
             <label>
               <span>제목</span>
@@ -29,18 +31,17 @@
               <span>촬영 날짜</span>
               <input name="recordedDate" type="date">
             </label>
-            <label>
-              <span>영상 파일</span>
-              <input id="video-file" name="video" type="file" accept="video/*" required>
-            </label>
           </div>
-          <input id="thumbnail-data" name="thumbnailData" type="hidden">
-          <p id="thumbnail-status" class="thumbnail-status">영상을 선택하면 썸네일을 자동으로 뽑습니다.</p>
+          <label>
+            <span>구글드라이브 공유 링크</span>
+            <input name="driveUrl" type="url" placeholder="https://drive.google.com/file/d/..." required>
+          </label>
           <label>
             <span>메모</span>
             <textarea name="description" rows="3" placeholder="날짜, 장소, 함께 나온 사람들을 적어두면 나중에 찾기 좋습니다."></textarea>
           </label>
-          <button type="submit">업로드</button>
+          <p id="drive-status" class="thumbnail-status"></p>
+          <button type="submit">등록</button>
         </form>
       </section>
 
@@ -50,7 +51,7 @@
           <label class="sort-control">
             <span>정렬</span>
             <select id="sort-select">
-              <option value="uploaded">업로드일 순서</option>
+              <option value="uploaded">등록일 순서</option>
               <option value="recorded">촬영 날짜 순서</option>
             </select>
           </label>

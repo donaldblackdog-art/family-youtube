@@ -1,9 +1,7 @@
 const grid = document.querySelector("#video-grid");
 const count = document.querySelector("#count");
-const videoFile = document.querySelector("#video-file");
-const thumbnailData = document.querySelector("#thumbnail-data");
-const thumbnailStatus = document.querySelector("#thumbnail-status");
-const uploadForm = document.querySelector("#upload-form");
+const driveForm = document.querySelector("#drive-form");
+const driveStatus = document.querySelector("#drive-status");
 const roleLabel = document.querySelector("#role-label");
 const adminLink = document.querySelector("#admin-link");
 const uploadButton = document.querySelector("#upload-button");
@@ -15,7 +13,7 @@ init();
 setDefaultRecordedDate();
 
 function setDefaultRecordedDate() {
-  const input = uploadForm?.querySelector("input[name='recordedDate']");
+  const input = driveForm?.querySelector("input[name='recordedDate']");
   if (!input || input.value) return;
 
   const today = new Date();
@@ -32,28 +30,11 @@ async function init() {
   loadVideos();
 }
 
-videoFile?.addEventListener("change", async () => {
-  const file = videoFile.files?.[0];
-  thumbnailData.value = "";
-  if (!file) {
-    thumbnailStatus.textContent = "영상을 선택하면 썸네일을 자동으로 뽑습니다.";
-    return;
-  }
-
-  thumbnailStatus.textContent = "썸네일을 뽑는 중입니다.";
-  const thumbnail = await captureVideoThumbnail(file);
-  if (thumbnail) {
-    thumbnailData.value = thumbnail;
-    thumbnailStatus.textContent = "영상에서 썸네일을 뽑았습니다.";
-  } else {
-    thumbnailStatus.textContent = "썸네일을 못 뽑으면 기본 이미지로 저장됩니다.";
-  }
-});
-
-uploadForm?.addEventListener("submit", () => {
-  const button = uploadForm.querySelector("button[type='submit']");
-  button.textContent = "업로드 중";
+driveForm?.addEventListener("submit", () => {
+  const button = driveForm.querySelector("button[type='submit']");
+  button.textContent = "등록 중";
   button.disabled = true;
+  driveStatus.textContent = "구글드라이브 링크를 등록하고 있습니다.";
 });
 
 sortSelect?.addEventListener("change", renderVideos);
@@ -63,6 +44,7 @@ function loadVideos() {
   .then((response) => response.json())
   .then((videos) => {
     allVideos = videos;
+    showDriveError();
     renderVideos();
   });
 }
@@ -74,7 +56,7 @@ function renderVideos() {
       grid.innerHTML = `
         <div class="empty">
           <h2>아직 영상이 없습니다.</h2>
-          <p>오른쪽 위의 영상 올리기를 눌러 첫 가족 영상을 추가해 보세요.</p>
+          <p>오른쪽 위의 Drive 링크 등록을 눌러 첫 가족 영상을 추가해 보세요.</p>
         </div>
       `;
       return;
@@ -87,12 +69,12 @@ function renderVideos() {
         return `
           <article class="video-card">
             <a href="/watch?id=${video.id}">
-              <img src="${video.thumbUrl}" alt="">
+              <img src="${video.thumbUrl}" alt="" onerror="this.src='/public/placeholder.svg'">
             </a>
             <div>
               <a href="/watch?id=${video.id}">
                 <h2>${escapeHtml(video.title)}</h2>
-                <p class="video-meta">${recordedDate ? `촬영 ${recordedDate}` : `업로드 ${uploadedDate}`}</p>
+                <p class="video-meta">${recordedDate ? `촬영 ${recordedDate}` : `등록 ${uploadedDate}`}</p>
               </a>
               ${isAdmin ? `<button class="delete-button" data-id="${video.id}" type="button">삭제</button>` : ""}
             </div>
@@ -129,7 +111,7 @@ function formatDate(value) {
 
 async function deleteVideo(id) {
   if (!isAdmin) return;
-  if (!confirm("이 영상을 삭제할까요? 영상 파일도 함께 삭제됩니다.")) return;
+  if (!confirm("초초TV 목록에서 이 영상을 삭제할까요? 구글드라이브 원본은 삭제되지 않습니다.")) return;
 
   const response = await fetch(`/api/videos/${encodeURIComponent(id)}`, { method: "DELETE" });
   if (!response.ok) {
@@ -140,47 +122,11 @@ async function deleteVideo(id) {
   loadVideos();
 }
 
-async function captureVideoThumbnail(file) {
-  const objectUrl = URL.createObjectURL(file);
-  const video = document.createElement("video");
-  video.preload = "metadata";
-  video.muted = true;
-  video.playsInline = true;
-  video.src = objectUrl;
-
-  try {
-    await once(video, "loadedmetadata");
-    video.currentTime = Math.min(2, Math.max(0, (video.duration || 1) * 0.2));
-    await once(video, "seeked");
-
-    const canvas = document.createElement("canvas");
-    const width = 640;
-    const ratio = video.videoHeight && video.videoWidth ? video.videoHeight / video.videoWidth : 9 / 16;
-    canvas.width = width;
-    canvas.height = Math.round(width * ratio);
-
-    const context = canvas.getContext("2d");
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.82);
-  } catch {
-    return "";
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
-}
-
-function once(target, eventName) {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Timed out")), 5000);
-    target.addEventListener(eventName, () => {
-      clearTimeout(timeout);
-      resolve();
-    }, { once: true });
-    target.addEventListener("error", () => {
-      clearTimeout(timeout);
-      reject(new Error("Video error"));
-    }, { once: true });
-  });
+function showDriveError() {
+  const params = new URLSearchParams(location.search);
+  if (params.get("driveError") !== "1" || !driveStatus) return;
+  document.querySelector("#upload-toggle").checked = true;
+  driveStatus.textContent = "구글드라이브 공유 링크를 확인하지 못했습니다. /file/d/가 들어간 링크를 붙여넣어 주세요.";
 }
 
 function escapeHtml(value) {

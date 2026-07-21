@@ -3,7 +3,6 @@ import fs from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import http from "node:http";
-import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,8 +11,6 @@ const FAMILY_PASSWORD = process.env.FAMILY_PASSWORD || "0000";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "9999";
 const SESSION_COOKIE = "familytube_session";
 const MEDIA_DIR = path.join(__dirname, "media");
-const VIDEO_DIR = path.join(MEDIA_DIR, "videos");
-const THUMB_DIR = path.join(MEDIA_DIR, "thumbnails");
 const DATA_DIR = path.join(__dirname, "data");
 const DB_PATH = path.join(DATA_DIR, "videos.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -93,9 +90,9 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { role: getSessionRole(req), isAdmin: isAdmin(req) });
     }
 
-    if (req.method === "POST" && url.pathname === "/api/upload") {
+    if (req.method === "POST" && url.pathname === "/api/drive-videos") {
       if (!isAdmin(req)) return json(res, 403, { error: "admin_required" });
-      return handleUpload(req, res);
+      return handleCreateDriveVideo(req, res);
     }
 
     if (req.method === "PATCH" && url.pathname.startsWith("/api/videos/")) {
@@ -122,8 +119,7 @@ server.listen(PORT, () => {
 });
 
 async function ensureStorage() {
-  await fs.mkdir(VIDEO_DIR, { recursive: true });
-  await fs.mkdir(THUMB_DIR, { recursive: true });
+  await fs.mkdir(MEDIA_DIR, { recursive: true });
   await fs.mkdir(DATA_DIR, { recursive: true });
   try {
     await fs.access(DB_PATH);
@@ -170,44 +166,32 @@ function setSession(res, role, location) {
   res.end();
 }
 
-async function handleUpload(req, res) {
-  const contentType = req.headers["content-type"] || "";
-  const match = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
-  if (!match) return json(res, 400, { error: "multipart_required" });
+async function handleCreateDriveVideo(req, res) {
+  const body = await readBody(req, 100_000);
+  const params = new URLSearchParams(body);
+  const title = (params.get("title") || "").trim() || "제목 없는 영상";
+  const description = (params.get("description") || "").trim();
+  const recordedDate = normalizeDate(params.get("recordedDate") || "");
+  const driveUrl = (params.get("driveUrl") || "").trim();
+  const driveId = extractGoogleDriveFileId(driveUrl);
 
-  const body = await readBody(req, 1_500_000_000, "binary");
-  const parsed = parseMultipart(Buffer.from(body, "binary"), match[1] || match[2]);
-  const title = (parsed.fields.title || "").trim() || "제목 없는 영상";
-  const description = (parsed.fields.description || "").trim();
-  const recordedDate = normalizeDate(parsed.fields.recordedDate || "");
-  const thumbnailData = (parsed.fields.thumbnailData || "").trim();
-  const file = parsed.files.video;
-
-  if (!file || !file.filename) return json(res, 400, { error: "video_required" });
-  if (!file.contentType.startsWith("video/")) return json(res, 400, { error: "video_only" });
+  if (!driveId) return redirect(res, "/?driveError=1");
 
   const id = crypto.randomUUID();
-  const ext = safeVideoExtension(file.filename, file.contentType);
-  const videoName = `${id}${ext}`;
-  const thumbName = `${id}.jpg`;
-  const videoPath = path.join(VIDEO_DIR, videoName);
-  const thumbPath = path.join(THUMB_DIR, thumbName);
-
-  await fs.writeFile(videoPath, file.data);
-  const uploadedThumbnail = await saveUploadedThumbnail(thumbnailData, thumbPath);
-  const thumbnailCreated = uploadedThumbnail || await createThumbnail(videoPath, thumbPath);
-
   const videos = await listVideos();
   videos.push({
     id,
     title,
     description,
     recordedDate,
-    originalName: file.filename,
-    videoUrl: `/media/videos/${videoName}`,
-    thumbUrl: thumbnailCreated ? `/media/thumbnails/${thumbName}` : "/public/placeholder.svg",
+    originalName: "Google Drive",
+    sourceType: "googleDrive",
+    driveFileId: driveId,
+    driveUrl,
+    videoUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+    thumbUrl: `https://drive.google.com/thumbnail?id=${driveId}&sz=w640`,
     createdAt: new Date().toISOString(),
-    size: file.data.length
+    size: 0
   });
   await saveVideos(videos);
 
@@ -237,13 +221,24 @@ async function handleUpdateVideo(req, res, id) {
   const title = String(body.title || "").trim();
   if (!title) return json(res, 400, { error: "title_required" });
 
-  videos[index] = {
+  const nextVideo = {
     ...videos[index],
     title,
     description: String(body.description || "").trim(),
     recordedDate: normalizeDate(body.recordedDate || "")
   };
 
+  if (nextVideo.sourceType === "googleDrive" && body.driveUrl !== undefined) {
+    const driveUrl = String(body.driveUrl || "").trim();
+    const driveId = extractGoogleDriveFileId(driveUrl);
+    if (!driveId) return json(res, 400, { error: "drive_url_required" });
+    nextVideo.driveFileId = driveId;
+    nextVideo.driveUrl = driveUrl;
+    nextVideo.videoUrl = `https://drive.google.com/file/d/${driveId}/preview`;
+    nextVideo.thumbUrl = `https://drive.google.com/thumbnail?id=${driveId}&sz=w640`;
+  }
+
+  videos[index] = nextVideo;
   await saveVideos(videos);
   json(res, 200, videos[index]);
 }
@@ -288,99 +283,31 @@ async function readBody(req, maxBytes, encoding = "utf8") {
   return encoding === "binary" ? buffer.toString("binary") : buffer.toString("utf8");
 }
 
-function parseMultipart(buffer, boundary) {
-  const fields = {};
-  const files = {};
-  const marker = Buffer.from(`--${boundary}`);
-  const parts = splitBuffer(buffer, marker).slice(1, -1);
-
-  for (const part of parts) {
-    const cleanPart = trimCrlf(part);
-    const headerEnd = cleanPart.indexOf(Buffer.from("\r\n\r\n"));
-    if (headerEnd === -1) continue;
-
-    const headerText = cleanPart.slice(0, headerEnd).toString("utf8");
-    const data = cleanPart.slice(headerEnd + 4);
-    const name = headerText.match(/name="([^"]+)"/)?.[1];
-    const filename = headerText.match(/filename="([^"]*)"/)?.[1];
-    const contentType = headerText.match(/Content-Type:\s*([^\r\n]+)/i)?.[1] || "application/octet-stream";
-    if (!name) continue;
-
-    if (filename !== undefined) {
-      files[name] = { filename: path.basename(filename), contentType, data };
-    } else {
-      fields[name] = data.toString("utf8");
-    }
-  }
-
-  return { fields, files };
-}
-
-function splitBuffer(buffer, separator) {
-  const parts = [];
-  let start = 0;
-  let index = buffer.indexOf(separator);
-  while (index !== -1) {
-    parts.push(buffer.slice(start, index));
-    start = index + separator.length;
-    index = buffer.indexOf(separator, start);
-  }
-  parts.push(buffer.slice(start));
-  return parts;
-}
-
-function trimCrlf(buffer) {
-  let start = 0;
-  let end = buffer.length;
-  while (buffer[start] === 13 || buffer[start] === 10) start += 1;
-  while (buffer[end - 1] === 13 || buffer[end - 1] === 10) end -= 1;
-  return buffer.slice(start, end);
-}
-
-function safeVideoExtension(filename, contentType) {
-  const ext = path.extname(filename).toLowerCase();
-  if ([".mp4", ".webm", ".mov"].includes(ext)) return ext;
-  if (contentType.includes("webm")) return ".webm";
-  if (contentType.includes("quicktime")) return ".mov";
-  return ".mp4";
-}
-
 function normalizeDate(value) {
   const date = String(value).trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return "";
   return Number.isNaN(new Date(`${date}T00:00:00`).getTime()) ? "" : date;
 }
 
-async function createThumbnail(videoPath, thumbPath) {
-  return new Promise((resolve) => {
-    const ffmpeg = spawn("ffmpeg", [
-      "-y",
-      "-ss",
-      "00:00:02",
-      "-i",
-      videoPath,
-      "-frames:v",
-      "1",
-      "-vf",
-      "scale=640:-1",
-      thumbPath
-    ]);
+function extractGoogleDriveFileId(value) {
+  try {
+    const url = new URL(value);
+    if (!url.hostname.includes("drive.google.com")) return "";
 
-    ffmpeg.on("error", () => resolve(false));
-    ffmpeg.on("close", (code) => resolve(code === 0));
-  });
+    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
+    if (pathMatch) return sanitizeDriveId(pathMatch[1]);
+
+    const id = url.searchParams.get("id");
+    if (id) return sanitizeDriveId(id);
+  } catch {
+    return "";
+  }
+
+  return "";
 }
 
-async function saveUploadedThumbnail(dataUrl, thumbPath) {
-  const match = dataUrl.match(/^data:image\/jpeg;base64,([a-z0-9+/=]+)$/i);
-  if (!match) return false;
-
-  try {
-    await fs.writeFile(thumbPath, Buffer.from(match[1], "base64"));
-    return true;
-  } catch {
-    return false;
-  }
+function sanitizeDriveId(value) {
+  return /^[a-zA-Z0-9_-]{10,}$/.test(value) ? value : "";
 }
 
 async function deleteMediaFile(urlPath) {
