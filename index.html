@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>초초TV</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="login-screen" class="login-screen">
+      <form id="login-form" class="login-card">
+        <div class="brand-lockup">
+          <span class="brand-mark">초</span>
+          <div>
+            <h1>초초TV</h1>
+            <p>우리 가족 구글드라이브 영상 앨범</p>
+          </div>
+        </div>
+        <label>
+          <span>가족 비밀번호</span>
+          <input id="password-input" type="password" autocomplete="current-password" autofocus>
+        </label>
+        <button type="submit">들어가기</button>
+        <p id="login-error" class="error" hidden>비밀번호가 맞지 않습니다.</p>
+      </form>
+    </div>
+
+    <div id="app" class="app-shell" hidden>
+      <header class="topbar">
+        <a class="brand" href="#home">초초TV</a>
+        <nav class="top-actions">
+          <a class="text-link" href="admin.html">영상 추가 방법</a>
+          <button id="logout-button" class="secondary-button" type="button">나가기</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Google Drive Library</p>
+            <h2>가족 영상만 모아보는 작은 TV</h2>
+            <p>영상 파일은 구글드라이브에 두고, 초초TV는 가족들이 보기 좋은 목록과 재생 화면만 제공합니다.</p>
+          </div>
+          <div class="hero-stat">
+            <strong id="total-count">0</strong>
+            <span>등록된 영상</span>
+          </div>
+        </section>
+
+        <section class="toolbar" aria-label="영상 찾기">
+          <label>
+            <span>검색</span>
+            <input id="search-input" type="search" placeholder="제목, 설명, 장소 검색">
+          </label>
+          <label>
+            <span>정렬</span>
+            <select id="sort-select">
+              <option value="recorded">촬영일 순서</option>
+              <option value="added">등록일 순서</option>
+              <option value="title">제목 순서</option>
+            </select>
+          </label>
+        </section>
+
+        <section id="video-grid" class="video-grid" aria-live="polite"></section>
+      </main>
+
+      <dialog id="player-dialog" class="player-dialog">
+        <div class="dialog-head">
+          <div>
+            <h2 id="player-title"></h2>
+            <p id="player-meta"></p>
+          </div>
+          <button id="close-player" class="secondary-button" type="button">닫기</button>
+        </div>
+        <iframe id="player-frame" title="구글드라이브 영상 재생" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        <p id="player-description" class="description"></p>
+      </dialog>
+    </div>
+
+    <script src="videos.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
