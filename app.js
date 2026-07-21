@@ -1,6 +1,5 @@
-const FAMILY_PASSWORD = "0000";
 const SESSION_KEY = "chocho-tv-unlocked";
-const videos = normalizeVideos(window.CHOCHO_VIDEOS || []);
+let videos = [];
 
 const loginScreen = document.querySelector("#login-screen");
 const loginForm = document.querySelector("#login-form");
@@ -21,21 +20,14 @@ const closePlayer = document.querySelector("#close-player");
 
 init();
 
-function init() {
-  if (sessionStorage.getItem(SESSION_KEY) === "1") {
-    showApp();
+async function init() {
+  if (sessionStorage.getItem(SESSION_KEY)) {
+    await unlock(sessionStorage.getItem(SESSION_KEY));
   }
 
-  loginForm.addEventListener("submit", (event) => {
+  loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (passwordInput.value !== FAMILY_PASSWORD) {
-      loginError.hidden = false;
-      passwordInput.select();
-      return;
-    }
-
-    sessionStorage.setItem(SESSION_KEY, "1");
-    showApp();
+    await unlock(passwordInput.value);
   });
 
   searchInput.addEventListener("input", renderVideos);
@@ -48,6 +40,20 @@ function init() {
   dialog.addEventListener("close", () => {
     playerFrame.src = "about:blank";
   });
+}
+
+async function unlock(password) {
+  try {
+    const decryptedVideos = await decryptVideos(password);
+    videos = normalizeVideos(decryptedVideos);
+    sessionStorage.setItem(SESSION_KEY, password);
+    loginError.hidden = true;
+    showApp();
+  } catch {
+    sessionStorage.removeItem(SESSION_KEY);
+    loginError.hidden = false;
+    passwordInput.select();
+  }
 }
 
 function showApp() {
@@ -122,6 +128,47 @@ function normalizeVideos(items) {
       thumbUrl: driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w640` : ""
     };
   }).filter((item) => item.driveId);
+}
+
+async function decryptVideos(password) {
+  const encrypted = window.CHOCHO_ENCRYPTED_VIDEOS;
+  if (!encrypted?.salt || !encrypted?.iv || !encrypted?.data) {
+    throw new Error("Missing encrypted video list");
+  }
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: base64ToBytes(encrypted.salt),
+      iterations: encrypted.iterations || 210000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: base64ToBytes(encrypted.iv)
+    },
+    key,
+    base64ToBytes(encrypted.data)
+  );
+
+  return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+function base64ToBytes(value) {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 }
 
 function sortVideos(items, mode) {
