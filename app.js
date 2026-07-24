@@ -75,7 +75,7 @@ function renderVideos() {
     grid.innerHTML = `
       <div class="empty">
         <h2>${videos.length === 0 ? "아직 등록된 영상이 없습니다." : "검색 결과가 없습니다."}</h2>
-        <p>${videos.length === 0 ? "구글드라이브 영상 링크를 videos.js에 추가하면 여기에 나타납니다." : "검색어를 조금 바꿔보세요."}</p>
+        <p>${videos.length === 0 ? "YouTube 일부공개 링크를 목록에 추가하면 여기에 나타납니다." : "검색어를 조금 바꿔보세요."}</p>
       </div>
     `;
     return;
@@ -84,7 +84,7 @@ function renderVideos() {
   grid.innerHTML = filtered.map((video) => `
     <article class="video-card">
       <button class="thumb-button" type="button" data-id="${escapeHtml(video.id)}">
-        <img src="${escapeAttribute(video.thumbUrl)}" alt="" onerror="this.src='https://placehold.co/640x360/f1eadf/227864?text=ChochoTV'">
+        <img src="${escapeAttribute(video.thumbUrl)}" alt="" onerror="this.src='https://placehold.co/640x360/fff0e8/e21d2f?text=ChochoTV'">
         <span>재생</span>
       </button>
       <div>
@@ -117,18 +117,18 @@ function closeDialog() {
 
 function normalizeVideos(items) {
   return items.map((item, index) => {
-    const driveId = extractDriveId(item.driveUrl || item.driveId || "");
+    const youtubeId = extractYoutubeId(item.youtubeUrl || item.youtubeId || "");
     return {
-      id: driveId || `video-${index}`,
+      id: youtubeId || `video-${index}`,
       title: String(item.title || "제목 없는 영상").trim(),
       description: String(item.description || "").trim(),
       recordedDate: normalizeDate(item.recordedDate),
       addedDate: normalizeDate(item.addedDate) || today(),
-      driveId,
-      previewUrl: driveId ? `https://drive.google.com/file/d/${driveId}/preview` : "",
-      thumbUrl: driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w640` : ""
+      youtubeId,
+      previewUrl: youtubeId ? `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1` : "",
+      thumbUrl: youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : ""
     };
-  }).filter((item) => item.driveId);
+  }).filter((item) => item.youtubeId);
 }
 
 async function decryptVideos(password) {
@@ -180,17 +180,23 @@ function sortVideos(items, mode) {
   });
 }
 
-function extractDriveId(value) {
-  if (/^[a-zA-Z0-9_-]{10,}$/.test(value)) return value;
+function extractYoutubeId(value) {
+  if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
 
   try {
     const url = new URL(value);
-    const pathMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
-    if (pathMatch) return pathMatch[1];
-    return url.searchParams.get("id") || "";
+    if (url.hostname === "youtu.be") return cleanYoutubeId(url.pathname.slice(1));
+    if (url.pathname.startsWith("/shorts/")) return cleanYoutubeId(url.pathname.split("/")[2]);
+    if (url.pathname.startsWith("/embed/")) return cleanYoutubeId(url.pathname.split("/")[2]);
+    return cleanYoutubeId(url.searchParams.get("v") || "");
   } catch {
     return "";
   }
+}
+
+function cleanYoutubeId(value) {
+  const id = String(value || "").split(/[?&#/]/)[0];
+  return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : "";
 }
 
 function normalizeDate(value) {

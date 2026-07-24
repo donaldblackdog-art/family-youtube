@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>초초TV 영상 추가 방법</title>
+    <title>초초TV YouTube 영상 추가 방법</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -16,26 +16,26 @@
       <section class="hero">
         <div>
           <p class="eyebrow">How to add</p>
-          <h1>구글드라이브 영상 추가 방법</h1>
-          <p>이 사이트는 서버가 없어서 사이트 안에서 바로 저장하지 않습니다. 대신 `videos.js` 파일에 구글드라이브 링크 정보를 추가하고 GitHub에 올리면 됩니다.</p>
+          <h1>YouTube 일부공개 영상 추가 방법</h1>
+          <p>영상은 YouTube에 일부공개로 올리고, 초초TV에는 그 링크만 암호화해서 넣습니다. 가족은 초초TV 안에서 바로 볼 수 있습니다.</p>
         </div>
       </section>
 
       <section class="steps">
         <article>
           <strong>1</strong>
-          <h2>구글드라이브에 영상 올리기</h2>
-          <p>구글드라이브에 `초초TV` 폴더를 만들고 영상을 올립니다.</p>
+          <h2>YouTube에 영상 올리기</h2>
+          <p>YouTube Studio에서 영상을 올리고 공개 상태를 `일부공개`로 설정합니다.</p>
         </article>
         <article>
           <strong>2</strong>
-          <h2>공유 링크 복사</h2>
-          <p>영상 파일 공유 권한을 `링크가 있는 모든 사용자 - 뷰어`로 바꾼 뒤 링크를 복사합니다.</p>
+          <h2>일부공개 링크 복사</h2>
+          <p>영상 주소를 복사합니다. `youtu.be/...` 또는 `youtube.com/watch?v=...` 링크 모두 사용할 수 있습니다.</p>
         </article>
         <article>
           <strong>3</strong>
           <h2>영상 목록에 추가</h2>
-          <p>복사한 링크를 `videos.js`의 `driveUrl`에 넣고 제목, 촬영일, 설명을 적습니다.</p>
+          <p>복사한 링크를 `videos.private.json`의 `youtubeUrl`에 넣고 제목, 촬영일, 설명을 적습니다.</p>
         </article>
       </section>
 
@@ -46,7 +46,7 @@
   recordedDate: "2026-07-21",
   addedDate: "2026-07-21",
   description: "할머니, 할아버지와 함께 본 바다",
-  driveUrl: "https://drive.google.com/file/d/구글드라이브파일ID/view"
+  youtubeUrl: "https://youtu.be/유튜브영상ID"
 }</code></pre>
       </section>
     </main>
